@@ -6077,6 +6077,13 @@ end;  (* ict *)
 
 
 begin
+     (* dgm *)
+    if paramcount=3 then begin
+                assign(progfile,paramstr(1));
+                assign(listfile,paramstr(2));
+                assign(objfile,paramstr(3))
+                end;
+
 	pfcfront(success);
 	impcheck(success);
 	if success then

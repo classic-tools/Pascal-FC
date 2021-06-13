@@ -1,5 +1,5 @@
 # Pascal-FC
-Pascal-FC compiler and virtual machine interpreter developed by Alan Burns and Geoff Davies (1990-1992). GNU Pascal modifications by Periklis Sochos (2002)
+Pascal-FC compiler and virtual machine interpreter developed by Alan Burns and Geoff Davies (1990-1992). GNU Pascal modifications by Periklis Sochos (2002) and Daniel Garrido (2009)
 
 |Directory|Description                 |License          |
 |---------|----------------------------|-----------------|

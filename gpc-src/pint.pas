@@ -2925,6 +2925,13 @@ begin  (* Main *)
        native function: random, provided
        by GNU Pascal to implement randomness
      *)
+
+    (* dgm *)
+    if paramcount=2 then begin
+                assign(objfile,paramstr(1));
+                assign(pmdfile,paramstr(2))
+                end;
+
     randomize;
 	putversion(output);
 
