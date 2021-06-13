@@ -1,0 +1,62 @@
+program semchan;
+(*
+Simulation of binary semaphore with channels
+*)
+
+const
+  pmax = 2;
+type
+  synchan = channel of synchronous;
+var
+  shared, procloop: integer;
+  p, v: array[1..pmax] of synchan;
+
+
+process sem;
+var
+  i, value: integer;
+begin
+  value := 1;
+  repeat
+    select
+      for i := 1 to pmax replicate
+        when value <> 0 =>
+        p[i] ? any;
+        value := 0;
+    or
+      for i := 1 to pmax replicate
+        v[i] ? any;
+        value := 1;
+    or
+      terminate
+    end  (* select *)
+  forever
+end;  (* sem *)
+
+
+
+process type usertype(n: integer);
+var
+  local: integer;
+begin
+  for local := 1 to 20 do
+    begin
+    p[n] ! any;
+    shared := shared + 1;
+    v[n] ! any
+    end
+end;  (* user *)
+
+var
+  user:  array[1..pmax] of usertype;
+
+
+begin
+  shared := 0;
+  cobegin
+    sem;
+    for procloop := 1 to pmax do
+      user[procloop](procloop)
+  coend;
+  writeln(shared)
+end.

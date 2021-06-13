@@ -1,0 +1,65 @@
+
+program dekker;
+
+(* dekker's solution to the mutual exclusion problem *)
+
+var
+	favoured: integer;
+	p1requests, p2requests: boolean;
+	shared: integer;
+
+process one;
+
+var
+	loop: integer;
+
+begin
+	for loop := 1 to 20 do
+		begin
+		p1requests := true;
+		while p2requests do
+			begin
+			p1requests := false;
+			while favoured = 2 do null;
+			p1requests := true
+			end;
+		shared := shared + 1;
+		favoured := 2;
+		p1requests := false
+		end
+end;  (* one *)
+
+
+
+process two;
+
+var
+	loop: integer;
+
+begin
+	for loop := 1 to 20 do
+		begin
+		p2requests := true;
+		while p1requests do
+			begin
+			p2requests := false;
+			while favoured = 1 do null;
+			p2requests := true
+			end;
+		shared := shared + 1;
+		favoured := 1;
+		p2requests := false
+		end
+end;  (* two *)
+
+
+begin
+	shared := 0;
+	favoured := 1;
+	cobegin
+		one;
+		two
+	coend;
+	writeln(shared)
+end.
+

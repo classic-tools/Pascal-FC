@@ -1,0 +1,117 @@
+program philada;
+(* 
+Dining Philsophers using ada rendezvous
+*)
+
+const
+  nphil = 5;
+  maxphils = 4;
+
+var
+  index: integer;
+
+
+
+process activities;
+  entry think(n: integer);
+  entry eat(n: integer);
+begin
+  repeat
+    select
+      accept think(n: integer) do
+        writeln('Philosopher',n,' thinks');
+      or
+        accept eat(n: integer) do
+          writeln('Philosopher',n,' eats');
+      or
+        terminate
+    end
+  forever
+end;  (* activities *)
+
+
+
+
+
+process deadprev provides
+  entry enters;
+  entry leaves;
+end;
+
+
+process type forkcont provides
+  entry pickup;
+  entry putdown;
+end;
+
+var
+  forks: array[0..maxphils] of forkcont;
+
+process type philtype(n: integer);
+var
+  fork1, fork2: integer;
+begin
+  fork1 := n;
+  fork2 := (n + 1) mod nphil;
+  repeat
+    activities.think(n);
+    deadprev.enters;
+    forks[fork1].pickup;
+    forks[fork2].pickup;
+    activities.eat(n);
+    forks[fork1].putdown;
+    forks[fork2].putdown;
+    deadprev.leaves
+  forever
+end;  (* philtype *)
+
+var
+  philosopher: array[0..maxphils] of philtype;
+
+
+process type forkcont;
+  entry pickup;
+  entry putdown;
+begin
+  repeat
+    accept pickup do
+      null;
+  accept putdown do
+    null
+  forever
+end;  (* forkcont *)
+
+
+process deadprev;
+  entry enters;
+  entry leaves;
+var
+  eating: integer;
+begin
+  eating := 0;
+  repeat
+    select
+      when eating < maxphils =>
+      accept enters do
+        eating := eating + 1;
+    or
+      accept leaves do
+        eating := eating - 1;
+    or
+      terminate
+    end
+  forever
+end;  (* deadprev *)
+
+
+begin
+  cobegin
+    for index := 0 to maxphils do
+      begin
+      philosopher[index](index);
+      forks[index]
+      end;
+    deadprev;
+    activities
+  coend
+end.

@@ -1,0 +1,89 @@
+program bcstres2;
+  (* Program for the broadcasting of integer values *)
+  (* to three client consumer processes *)
+
+resource control;
+  export WRITING, READING;
+  var value : integer;
+      OK, OK2, barrier : boolean;
+      available : array[1..3] of boolean;
+      I: integer ;
+
+  guarded procedure WRIT when OK2;
+  begin
+    barrier := false
+  end;
+
+  guarded procedure WRITING(V : integer) when OK;
+    var I : integer;
+  begin
+    value := V;
+    OK := false;
+    barrier := true;
+    OK2 := false;
+    requeue WRIT;
+  end;
+
+  guarded procedure READ(Id : integer; var V : integer) when barrier;
+  begin
+    V := value;
+    available[Id] := true;
+    if available[1] and available[2] and available[3] then
+      OK2 := true;
+  end;
+
+  guarded procedure READING(Id : integer; var V : integer) when true;
+  begin
+    available[Id] := false;
+    if not available[1] and not available[2]
+       and not available[3] then
+      OK := true;
+    requeue READ(Id,V)
+  end;
+
+begin
+  OK := false;
+  barrier := false;
+  for I := 1 to 3 do
+    available[I] := false
+end; (* resource control *)
+
+
+resource screen;
+  export
+    PRINT;
+
+  procedure PRINT(ID, N: integer);
+  begin
+    writeln(ID,N)
+  end;
+end;  (* resource screen *)
+
+process broadcaster;
+  var I : integer;
+begin
+  I := 1;
+  repeat
+    control.WRITING(I);
+    I := I + 1
+  forever
+end;
+
+process type consumer(Ident : integer);
+  var V : integer;
+begin
+  repeat
+    control.READING(Ident,V);
+    screen.PRINT(Ident,V)
+  forever
+end;
+
+var cons1, cons2, cons3 : consumer;
+
+begin
+  cobegin
+    broadcaster;
+    cons1(1); cons2(2); cons3(3)
+  coend
+end.
+

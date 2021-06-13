@@ -1,0 +1,72 @@
+program PCMON;
+
+(* producer-consumer problem  - monitor solution *)
+
+
+monitor BUFFER;
+export
+  PUT, TAKE;
+const
+  BUFFMAX = 4;
+var
+  STORE: array[0..BUFFMAX] of char;
+  COUNT: integer;
+  NOTFULL, NOTEMPTY: condition;
+  NEXTIN, NEXTOUT: integer;
+
+procedure PUT(CH: char);
+begin
+  if COUNT > BUFFMAX then
+    delay(NOTFULL);
+  STORE[NEXTIN] := CH;
+  COUNT := COUNT + 1;
+  NEXTIN := (NEXTIN + 1) mod (BUFFMAX + 1);
+  resume(NOTEMPTY)
+end;  (* PUT *)
+
+
+procedure TAKE(var CH: char);
+begin
+  if COUNT = 0 then
+    delay(NOTEMPTY);
+  CH := STORE[NEXTOUT];
+  COUNT := COUNT - 1;
+  NEXTOUT := (NEXTOUT + 1) mod (BUFFMAX + 1);
+  resume(NOTFULL)
+end;  (* TAKE *)
+
+
+
+begin  (* body of BUFFER *)
+  COUNT := 0;
+  NEXTIN := 0;
+  NEXTOUT := 0
+end;  (* BUFFER *)
+
+
+process PRODUCER;
+var
+  LOCAL: char;
+begin
+  for LOCAL := 'a' to 'z' do
+    BUFFER.PUT(LOCAL);
+end;  (* PRODUCER *)
+
+
+process CONSUMER;
+var
+  CH: char;
+begin
+  repeat
+    BUFFER.TAKE(CH);
+    write(CH)
+  until CH = 'z';
+  writeln
+end;  (* CONSUMER *)
+
+begin  (* main *)
+  cobegin
+    PRODUCER;
+    CONSUMER
+  coend
+end.

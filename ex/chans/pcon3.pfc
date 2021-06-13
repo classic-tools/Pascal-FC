@@ -1,0 +1,34 @@
+program pcon3;
+(*
+Unbuffered producer-consumer with channels
+*)
+
+var
+  ch: channel of char;
+
+process producer;
+var
+  message: char;
+begin
+  for message := 'a' to 'z' do
+    ch ! message
+end;
+
+process consumer;
+var
+  message: char;
+begin
+  repeat
+    ch ? message;
+    write(message)
+  until message = 'z';
+  writeln
+end;
+
+
+begin
+  cobegin
+    producer;
+    consumer
+  coend
+end.

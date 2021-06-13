@@ -1,0 +1,65 @@
+program pcada;
+(* 
+Buffered producer-consumer with ada rendezvous
+*)
+
+process buffer;
+	entry take(var ch: char);
+	entry put(ch: char);
+const
+	buffmax = 4;
+
+var
+	store: array[0..buffmax] of char;
+	nextin, nextout, count: integer;
+begin
+	nextin := 0;
+	nextout := 0;
+	count := 0;
+	repeat
+		select
+		when count <> 0 =>
+			accept take(var ch: char) do
+				ch := store[nextout];
+			count := count - 1;
+			nextout := (nextout + 1) mod (buffmax + 1);
+		or
+		when count <= buffmax =>
+			accept put(ch: char)  do
+				store[nextin] := ch;
+			count := count + 1;
+			nextin := (nextin + 1) mod (buffmax + 1 );
+		or
+			terminate
+		end  (* select *)
+	forever
+end;  (* buffer *)
+
+
+process producer;
+var
+	local: char;
+begin
+	for local := 'a' to 'z' do
+		buffer.put(local)
+end;  (* producer *)
+
+
+process consumer;
+var
+	local: char;
+begin
+	repeat
+		buffer.take(local);
+		write(local);
+	until local = 'z';
+	writeln
+end;  (* consumer *)
+
+begin
+	cobegin
+		producer;
+		consumer;
+		buffer
+	coend
+end.

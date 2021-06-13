@@ -1,0 +1,45 @@
+program gardens5;
+
+(* 
+ada-style solution to Ornamental Gardens 
+*)
+
+const
+  gates = 2;
+
+process counter;
+  entry inc;
+var
+  count: integer;
+begin
+  count := 0;
+  repeat
+    select
+      accept inc do
+        count := count + 1;
+      writeln(count);
+    or
+      terminate
+    end
+  forever
+end;  (* counter *)
+
+process type turntype(i: integer);
+var
+  local: integer;
+begin
+  for local := 1 to 20 do
+    counter.inc
+end;  (* turntype *)
+
+var
+  turnstile: array[1..gates] of turntype;
+  ploop: integer;
+
+begin
+  cobegin
+    counter;
+    for ploop := 1 to gates do
+      turnstile[ploop](ploop)
+  coend
+end.

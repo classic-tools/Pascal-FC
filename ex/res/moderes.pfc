@@ -1,0 +1,77 @@
+program moderes;
+
+resource change;
+  export writing, reading;
+  var fast : boolean;
+  procedure writing(ft : boolean);
+  begin
+    fast := ft
+  end;
+  procedure reading(var ft : boolean);
+  begin
+    ft := fast
+  end;
+begin
+  fast := false
+end;
+
+process changer;
+begin
+  sleep(5);
+  change.writing(true);
+  sleep(2);
+  change.writing(false)
+end;
+
+process output;
+  entry PUT(value : integer);
+begin
+  repeat
+    select
+      accept PUT(value : integer) do
+        writeln(value);
+    or
+      terminate;
+    end
+  forever
+end;
+
+process control;
+  entry PUT(value : integer);
+var variable : integer;
+    fast : boolean;
+begin
+  repeat
+    change.reading(fast);
+    select
+      accept PUT(value : integer) do
+        variable := value;
+    or
+      terminate
+    end;
+    if fast then
+      variable := variable + 100
+    else
+    begin
+      variable := variable + 1000;
+      sleep(2)
+    end;
+    output.PUT(variable)
+  forever
+end;
+    
+process input;
+var I : integer;
+begin
+  for I := 1 to 50 do
+    control.PUT(I)
+end;
+
+begin
+  cobegin
+    input;
+    output;
+    control;
+    changer
+  coend
+end.

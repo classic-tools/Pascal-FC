@@ -1,0 +1,47 @@
+program gardens2;
+(* 
+semaphore solution to Ornamental 
+Gardens problem
+*)
+
+var 
+  count: integer;
+  mutex: semaphore;
+
+process turnstile1;
+var 
+  loop: integer;
+begin
+  for loop := 1 to 20 do
+    begin
+    wait(mutex);
+    count := count + 1;
+    signal(mutex)
+    end
+end;  (* turnstile1 *)
+
+
+process turnstile2;
+var
+  loop: integer;
+begin
+  for loop := 1 to 20 do
+    begin
+    wait(mutex);
+    count := count + 1;
+    signal(mutex)
+    end
+end;  (* turnstile2 *)
+
+
+
+
+begin
+  count := 0;
+  initial(mutex,1);
+  cobegin
+    turnstile1;
+    turnstile2
+  coend;
+  writeln('Total admitted: ',count)
+end.

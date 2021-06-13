@@ -1,0 +1,53 @@
+
+program attempt2;
+
+var 
+	p1inside, p2inside: boolean;
+	shared: integer;
+
+process one;
+
+var
+	loop: integer;
+
+begin
+	for loop := 1 to 20 do
+		begin
+		while p2inside do
+			null;
+		p1inside := true;
+		shared := shared + 1;
+		p1inside := false
+		end
+end;  (* one *)
+
+
+process two;
+
+var
+	loop: integer;
+
+begin
+	for loop := 1 to 20 do
+		begin
+		while p1inside do
+			null;
+		p2inside := true;
+		shared := shared + 1;
+		p2inside := false
+		end
+end;  (* two *)
+
+
+begin
+	p1inside := false;
+	p2inside := false;
+	shared := 0;
+	cobegin
+		one;
+		two
+	coend;
+	writeln(shared)
+end.
+
+

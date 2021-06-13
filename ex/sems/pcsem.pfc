@@ -1,0 +1,74 @@
+program pcon2;
+(* 
+semaphore solution to 
+producer-consumer problem
+*)
+
+const
+  buffmax = 4;
+var 
+  buffer: array[0..buffmax] of char;
+  nextin, nextout: integer;
+  spacesleft, itemsready: semaphore;
+  mutex: semaphore;
+
+procedure put(ch: char);
+begin
+  buffer[nextin] := ch;
+  nextin := (nextin + 1) mod (buffmax + 1)
+end;  (* put *)
+
+
+procedure take(var ch: char);
+begin
+  ch := buffer[nextout];
+  nextout := (nextout + 1) mod (buffmax + 1)
+end;  (* take *)
+
+
+
+process producer;
+var 
+  local: char;
+
+begin
+  for local := 'a' to 'z' do
+    begin
+    wait(spacesleft);
+    wait(mutex);
+    put(local);
+    signal(mutex);
+    signal(itemsready)
+    end
+end;  (* producer *)
+ 
+process consumer;
+
+var 
+  local: char;
+
+begin
+  repeat
+    begin
+    wait(itemsready);
+    wait(mutex);
+    take(local);
+    signal(mutex);
+    signal(spacesleft);
+    write(local);
+    end
+  until local = 'z';
+  writeln
+end;  (* consumer *)
+
+begin
+  initial(spacesleft,buffmax + 1);
+  initial(itemsready,0);
+  initial(mutex,1);
+  nextin := 0;
+  nextout := 0;
+  cobegin
+    producer;
+    consumer
+  coend
+end.

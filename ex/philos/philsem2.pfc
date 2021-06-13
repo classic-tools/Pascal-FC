@@ -1,0 +1,39 @@
+program philsem2;
+
+(* Dining Philosophers - semaphore version 2 *)
+
+const
+   N = 5;
+var 
+   chopsticks : array [1..N] of semaphore;  (* binary *)
+   freechairs : semaphore;  (* general *)
+   I : integer;
+
+process type philosophers(name : integer);
+begin
+   repeat
+      sleep(random(5));   (* THINKING *)
+      wait(freechairs);
+      wait(chopsticks[name]);
+      wait(chopsticks[(name mod N) + 1]);
+      sleep(random(5));   (* EATING *)
+      signal(chopsticks[name]);
+      signal(chopsticks[(name mod N) + 1]);
+      signal(freechairs)
+   forever
+end;  (* philosophers *)
+
+var
+   phils: array[1..N] of philosophers;
+
+begin
+   for I := 1 to N do
+      initial(chopsticks[I],1);
+   initial(freechairs,N - 1);
+   cobegin
+      for I := 1 to N do
+         phils[I](I);
+   coend
+end.
+
+

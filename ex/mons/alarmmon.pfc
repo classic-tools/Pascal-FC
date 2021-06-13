@@ -1,0 +1,84 @@
+program ALARMCLOCK;
+(*
+Hoare's (1974) demonstration
+*)
+
+const
+  PMAX = 3;
+
+monitor ALARM;
+export
+  WAKEUP, TICK;
+var
+  NOW: integer;
+  WAKE: condition;
+
+procedure WAKEUP(N: integer);
+var
+  ALARMCALL: integer;
+begin
+  ALARMCALL := NOW + N;
+  while NOW < ALARMCALL do
+    begin
+    delay(WAKE);
+    resume(WAKE);
+    end
+end;  (* WAKEUP *)
+
+
+procedure TICK;
+begin
+  NOW := NOW + 1;
+  resume(WAKE)
+end;  (* TICK *)
+
+
+begin  (* body *)
+  NOW := 0
+end;  (* ALARM *)
+
+
+monitor SCREEN;
+export
+  PRINT;
+procedure PRINT(N: integer);
+begin
+  writeln('Process ',N:1,' aWAKEs')
+end;  (* PRINT *)
+
+end;  (* SCREEN *)
+
+
+
+
+process DRIVER;
+(* provides the clock "ticks" *)
+begin
+  repeat
+    sleep(1);
+    ALARM.TICK
+  forever
+end;  (* DRIVER *)
+
+
+process type CLIENTTYPE(N: integer);
+
+begin
+  repeat
+    ALARM.WAKEUP(n);
+    SCREEN.PRINT(N)
+  forever
+end;  (* CLIENTTYPE *)
+
+
+var
+  SLEEPERS:  array[1..PMAX] of CLIENTTYPE;
+  PLOOP: integer;
+
+begin
+  cobegin
+    DRIVER;
+    for PLOOP := 1 to PMAX do
+      SLEEPERS[PLOOP](PLOOP)
+  coend
+end.

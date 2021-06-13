@@ -1,0 +1,83 @@
+program philmon;
+(* 
+Dining Philosophers:  monitor version
+*)
+
+  var 
+    j, num: integer;
+
+
+  monitor forkmon;
+  export 
+    getforks,
+    putforks;
+
+    var 
+      forks: array [0..4] of integer;
+      oktoeat: array [0..4] of condition;
+      i: integer;
+
+    procedure getforks(i: integer);
+
+    begin
+      if forks[i] <> 2 then
+        begin
+        writeln('Philosopher ',i,' is waiting');
+        delay(oktoeat[i])
+        end;
+      forks[(i+1) mod 5] := forks[(i+1) mod 5] - 1;
+      forks[(i+4) mod 5] := forks[(i+4) mod 5] - 1;
+      writeln('Philosopher ',i,' eats')
+    end;  (* getforks *)
+
+    procedure putforks(i: integer);
+
+    begin
+      writeln('Philosopher ',i,' finishes');
+      forks[(i+1) mod 5] := forks[(i+1) mod 5] + 1;
+      forks[(i+4) mod 5] := forks[(i+4) mod 5] + 1;
+      if forks[(i+1) mod 5] = 2 then
+        resume(oktoeat[(i+1) mod 5]);
+      if forks[(i+4) mod 5] =2 then
+        resume(oktoeat[(i+4) mod 5])
+    end;  (* putforks *)
+
+  begin  (* monitor body *)
+    for i := 0 to 4 do
+      forks[i] := 2
+  end;  (* forkmon *)
+
+  procedure think;
+
+  begin
+    null
+  end;  (* think *)
+
+  procedure eat(n: integer);
+
+  begin
+    forkmon.getforks(n);
+    sleep(1);
+    forkmon.putforks(n)
+  end;  (* eat *)
+
+
+  process type philtype(n: integer);
+
+  begin
+    repeat
+      think;
+      eat(n)
+    forever
+  end;  (* philosopher *)
+
+  var
+    philosopher: array[0..4] of philtype;
+
+
+begin  (* main *)
+  cobegin
+    for num := 0 to 4 do
+      philosopher[num](num)
+  coend
+end.

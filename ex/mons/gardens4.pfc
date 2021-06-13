@@ -1,0 +1,51 @@
+program gardens4;
+(* 
+Ornamental Gardens problem -
+monitor solution
+*)
+
+const
+  nprocs = 2;
+var
+  procloop: integer;
+
+monitor counter;
+export
+  inc, print;
+var
+  count: integer;
+
+procedure inc;
+begin
+  count := count + 1
+end;  (* inc *)
+
+procedure print;
+begin
+  writeln('Total admitted - ',count:1)
+end;  (* print *)
+
+begin  (* body *)
+  count := 0
+end;  (* monitor counter *)
+
+
+process type turnstype;
+var
+  loop: integer;
+begin
+  for loop := 1 to 20 do
+    counter.inc
+end;  (* turnstype *)
+
+
+var
+  turnstile: array[1..nprocs] of turnstype;
+
+begin
+  cobegin
+    for procloop := 1 to nprocs do
+      turnstile[procloop]
+  coend;
+  counter.print
+end.

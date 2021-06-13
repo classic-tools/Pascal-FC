@@ -1,0 +1,76 @@
+program dijkstra;
+
+(* from ben ari, p 44 *)
+
+const 
+	nprocs=3;
+
+var
+	b, c: array[0..nprocs] of boolean;
+	turn: integer;
+	 index, shared : integer;
+
+
+procedure lock(pnum: integer);
+
+var
+	ok: boolean;
+	j: integer;
+
+begin
+	b[pnum] := false;
+	repeat
+		while turn <> pnum do
+			begin
+			c[pnum] := true;
+			if b[turn] then
+				turn := pnum
+			end;  (* while *)
+		c[pnum] := false;
+		ok := true;
+		for j := 1 to nprocs do
+			if j <> pnum then
+				ok := ok and c[j]
+	until ok
+end;  (* lock *)
+
+		
+procedure unlock(pnum: integer);
+
+begin
+	c[pnum] := true;
+	b[pnum] := true;
+	turn := 0
+end;  (* unlock *)
+
+
+process p(n: integer);
+
+var
+	loop: integer;
+
+begin
+	for loop := 1 to 20 do
+		begin
+		lock(n);
+		shared := shared + 1;
+		unlock(n)
+		end
+end;  (* p *)
+
+
+begin
+	shared := 0;
+	for turn := 0 to nprocs do
+		begin
+		b[turn] := true;
+		c[turn] := true
+		end;
+	turn := 0;
+	cobegin
+		for index := 1 to nprocs do
+			p(index)
+	coend;
+	writeln(shared)
+end.
+

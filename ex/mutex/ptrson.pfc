@@ -1,0 +1,58 @@
+program peterson;
+
+(*
+
+Peterson's two-process mutual exclusion algorithm
+
+*)
+
+
+var
+	count, turn : integer;
+	flag1, flag2: boolean;
+
+process turnstile1;
+
+var
+	loop: integer;
+begin
+  for loop := 1 to 20 do
+   begin
+    flag1:= true;    (* announce intent to enter *)
+    turn:= 2;      (* give priority to other process *)
+    while flag2 and (turn = 2) do
+      null;
+    count := count + 1;
+    flag1:= false
+     end
+end;
+
+
+process turnstile2;
+
+var
+	loop: integer;
+begin
+  for loop := 1 to 20 do
+   begin
+    flag2:= true;    (* announce intent to enter *)
+    turn:= 1;      (* give priority to other process *)
+    while flag1 and (turn = 1) do
+      null;
+    count := count + 1;
+    flag2:= false
+   end
+end;
+
+begin
+	count := 0;
+	turn := 1;
+	flag1 := false;
+	flag2 := false;
+	cobegin
+		turnstile1;
+		turnstile2
+	coend;
+	writeln('Total admitted:  ',count)
+end.
+

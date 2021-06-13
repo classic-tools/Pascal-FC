@@ -1,0 +1,68 @@
+program chansem;
+(*
+Simulation of channel with semphores
+*)
+  var first : boolean;
+      MutEx, second : semaphore;
+      value : integer;
+procedure output(V : integer);
+begin
+  wait(MutEx);
+  value := V;
+  if first then
+  begin
+    first := false;
+    signal(MutEx);
+    wait(second);
+    signal(MutEx)
+  end else
+  begin
+    first := true;
+    signal(second)
+  end
+end;
+
+procedure input(var V : integer);
+begin
+  wait(MutEx);
+  if first then
+  begin
+    first := false;
+    signal(MutEx);
+    wait(second);
+    V := value;
+    signal(MutEx)
+  end else
+  begin
+    first := true;
+    V := value;
+    signal(second)
+  end
+end;
+
+process producer;  (* example producer process *)
+var I : integer;
+begin
+  for I := 1 to 10 do
+    output(I)
+end;
+
+process consumer; (* example consumer process *)
+var I,V : integer;
+begin
+  for I := 1 to 10 do
+  begin
+    input(V);
+    writeln(V)
+  end
+end;
+
+begin
+  first := true;
+  initial(MutEx,1);
+  initial(second,0);
+  cobegin
+    producer;
+    consumer
+  coend
+end.

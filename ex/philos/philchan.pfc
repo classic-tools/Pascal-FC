@@ -1,0 +1,83 @@
+program philchan;
+
+(* dining philsophers using 
+   channels *)
+
+const
+  nphil = 5;
+  maxphils = 4;
+type
+  synchan = array[0..maxphils] of  channel of synchronous;
+
+var
+  index: integer;
+  getforks,putforks: synchan;
+
+procedure think;
+
+begin
+  null
+end;
+
+procedure eat;
+
+begin
+  null
+end;
+
+
+
+process philosopher(n: integer);
+
+begin
+  repeat
+    think;
+    getforks[n] ! any;
+    eat;
+    putforks[n] ! any;
+  forever
+end;  (* philosopher *)
+
+
+
+process forkcntrl;
+
+var
+  forks: array[0..maxphils] of integer;
+  i: integer;
+begin
+  for i := 0 to maxphils do
+    forks[i] := 2;
+  repeat
+    select
+      for i := 0 to maxphils replicate
+        when forks[i] = 2 =>
+          getforks[i] ? any;
+          forks[(i+1) mod nphil] := forks[(i+1) mod nphil] - 1;
+          forks[(i+4) mod nphil] := forks[(i+4) mod nphil] - 1;
+          writeln('Philosopher ',i:1,' eats');
+    or
+      for i := 0 to maxphils replicate
+        putforks[i] ? any;
+          forks[(i+1) mod nphil] := forks[(i+1) mod nphil] + 1;
+          forks[(i+4) mod nphil] := forks[(i+4) mod nphil] + 1;
+    or
+      terminate
+    end
+  forever
+end;  (* forkcont *)
+
+begin
+  cobegin
+    for index := 0 to maxphils do
+      philosopher(index);
+    forkcntrl
+  coend
+end.
+
+
+
+
+
+
+

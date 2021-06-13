@@ -1,0 +1,50 @@
+program SEMRES;
+
+(* simulation of binary semaphore by resources *)
+
+var
+  COUNT: integer;
+
+resource BINSEM;
+  export
+    WAIT, SIGNAL;
+  var
+    VALUE: integer;
+
+  guarded procedure WAIT when VALUE > 0;
+  begin
+    VALUE := VALUE - 1
+  end; (* WAIT *)
+
+  procedure SIGNAL;
+  begin
+    VALUE := VALUE + 1
+  end;  (* SIGNAL *)
+
+begin  (* body *)
+  VALUE := 1
+end;  (* BINSEM *)
+
+process type INC;
+var
+  I: integer;
+begin
+  for I := 1 to 20 do
+    begin
+    BINSEM.WAIT;
+    COUNT := COUNT + 1;
+    BINSEM.SIGNAL
+    end
+end;  (* INC *)
+
+var
+  TURNSTILE1, TURNSTILE2: INC;
+
+begin
+  COUNT := 0;
+  cobegin
+    TURNSTILE1;
+    TURNSTILE2
+  coend;
+  writeln('Final total; ',COUNT:1)
+end.

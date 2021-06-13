@@ -1,0 +1,101 @@
+program philres2;
+
+(* 
+
+Dining Philosophers:  resource version
+
+*)
+
+  var 
+    j, num: integer;
+
+
+  resource forkcontrol;
+  export 
+    getforks,
+    putforks;
+
+    var 
+      forks: array [0..4] of integer;
+      barrier: array[0..4] of boolean;
+      i: integer;
+      barrier1: boolean;
+
+    guarded procedure waiting1(i: integer) when not barrier1; forward;
+    guarded procedure waiting2(i: integer) when barrier1; forward;
+
+    guarded procedure getforks(i: integer) when true;
+
+    begin
+      if forks[i] <> 2 then
+        case i of
+        end;
+      forks[(i+1) mod 5] := forks[(i+1) mod 5] - 1;
+      forks[(i+4) mod 5] := forks[(i+4) mod 5] - 1;
+      writeln('Philosopher ',i,' eats')
+    end;  (* getforks *)
+
+    procedure putforks(i: integer);
+
+    begin
+      writeln('Philosopher ',i,' finishes');
+      forks[(i+1) mod 5] := forks[(i+1) mod 5] + 1;
+      forks[(i+4) mod 5] := forks[(i+4) mod 5] + 1;
+      barrier1 := not barrier1
+    end;  (* putforks *)
+
+    guarded procedure waiting1;
+    begin
+      requeue getforks(i)
+    end;
+
+    guarded procedure waiting2;
+    begin
+      requeue getforks(i)
+    end;
+
+  begin  (* monitor body *)
+    barrier1 := true;
+    for i := 0 to 4 do
+      begin
+      forks[i] := 2;
+      barrier[i] := true
+      end
+  end;  (* forkcontrol *)
+
+  procedure think;
+
+  begin
+    null
+  end;  (* think *)
+
+  procedure eat(n: integer);
+
+  begin
+    forkcontrol.getforks(n);
+    sleep(1);
+    forkcontrol.putforks(n)
+  end;  (* eat *)
+
+
+  process type philtype(n: integer);
+
+  begin
+    repeat
+      think;
+      eat(n)
+    forever
+  end;  (* philosopher *)
+
+  var
+    philosopher: array[0..4] of philtype;
+
+
+begin  (* main *)
+  cobegin
+    for num := 0 to 4 do
+      philosopher[num](num)
+  coend
+end.
+
+

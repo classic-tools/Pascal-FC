@@ -1,0 +1,105 @@
+program ALARMCLOCK;
+
+  (* compiler infinte loop *)
+
+const
+  PMAX = 3;
+
+resource ALARM;
+  export
+    SLUMBER, TICK;
+  var
+    NOW: integer;
+    queue : integer;      (* takes values 1 or 2 *)
+    freed1, freed2 : boolean;
+  
+  guarded procedure SLUMBER2(AL: integer) when freed2; forward;
+
+  guarded procedure SLUMBER1(AL: integer) when freed1;
+  begin
+    if NOW < AL then
+        requeue SLUMBER2(AL)
+  end;  (* SLUMBER *)
+
+  guarded procedure SLUMBER2;
+  begin
+    if NOW < AL then
+        requeue SLUMBER1(AL)
+  end;  (* SLUMBER *)
+
+  guarded procedure SLUMBER(N: integer) when true;
+  var
+    ALARMCALL: integer;
+  begin
+    ALARMCALL := NOW + N;
+    if NOW < ALARMCALL then
+      if queue = 1 then
+        requeue SLUMBER1(ALARMCALL)
+      else
+        requeue SLUMBER2(ALARMCALL)
+  end;  (* SLUMBER *)
+
+  procedure TICK;
+  begin
+    NOW := NOW + 1;
+    if queue = 1 then
+    begin
+      queue := 2;
+      freed1 := true;
+      freed2 := false
+    end else
+    begin
+      queue := 1;
+      freed1 := false;
+      freed2 := true
+    end
+  end;  (* TICK *)
+
+begin  (* body *)
+  NOW := 0;
+  queue := 1;
+  freed1 := false
+end;  (* ALARM *)
+
+resource SCREEN;
+  export
+    PRINT;
+
+  procedure PRINT(N: integer);
+  begin
+    writeln('Process ',N:1,' awakes')
+  end;  (* PRINT *)
+end;  (* SCREEN *)
+
+process DRIVER;
+  (* provides the clock "ticks" *)
+begin
+  repeat
+    sleep(1);
+    ALARM.TICK
+  forever
+end;  (* DRIVER *)
+
+process type SLEEPERTYPE(N: integer);
+begin
+  repeat
+    ALARM.SLUMBER(n);
+    SCREEN.PRINT(N)
+    (* get up and go to work *)
+  forever
+end;  (* SLEEPERTYPE *)
+
+var
+  SLEEPERS:  array[1..PMAX] of SLEEPERTYPE;
+  PLOOP: integer;
+
+begin
+  cobegin
+    DRIVER;
+    for PLOOP := 1 to PMAX do
+      SLEEPERS[PLOOP](PLOOP)
+  coend
+end.
+.DX
+
+

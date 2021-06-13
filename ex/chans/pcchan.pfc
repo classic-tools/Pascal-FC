@@ -1,0 +1,66 @@
+program pcchan;
+(*
+Buffered producer-consumer with channels
+*)
+
+const
+  buffmax = 4;
+var
+  inp, out: channel of char;
+  a,b,c: integer;
+
+process producer;
+var
+  message: char;
+begin
+  for message := 'a' to 'z' do
+    inp ! message
+end;
+
+process consumer;
+var
+  message: char;
+begin
+  repeat
+    out ? message;
+    write(message)
+  until message = 'z';
+  writeln
+end;
+
+
+process buffer;
+var
+  store: array[0..buffmax] of char;
+  count, nextin, nextout: integer;
+begin
+  count := 0;
+  nextin := 0;
+  nextout := 0;
+  repeat
+    select
+      when count <= buffmax =>
+      inp ? store[nextin];
+      nextin := (nextin + 1) mod (buffmax + 1);
+      count := count + 1;
+    or
+      when count <> 0 =>
+      out ! store[nextout];
+      nextout := (nextout + 1) mod (buffmax + 1);
+      count := count - 1;
+    or
+      terminate
+    end
+  forever
+end;
+
+
+
+
+begin
+  cobegin
+    producer;
+    consumer;
+    buffer
+  coend
+end.

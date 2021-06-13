@@ -1,0 +1,58 @@
+program SEMMON;
+
+(*
+simulation of the binary
+semaphore by monitors
+*)
+
+var
+  SHARED: integer;
+
+monitor SEM;
+export
+  WAIT, SIGNAL;
+
+var
+  VALUE: integer;
+  NOTZERO: condition;
+
+procedure WAIT;
+begin
+  if VALUE = 0 then
+    delay(NOTZERO);
+  VALUE := 0
+end;  (* WAIT *)
+
+procedure SIGNAL;
+begin
+  VALUE := 1;
+  resume(NOTZERO)
+end;  (* SIGNAL *)
+
+begin (* body *)
+  VALUE := 1
+end;  (* SEM *)
+
+process type INC;
+var
+  LOOP: integer;
+begin
+  for LOOP := 1 to 20 do
+    begin
+    SEM.WAIT;
+    SHARED := SHARED + 1;
+    SEM.SIGNAL
+    end
+end;  (* INC *)
+
+var
+  INC1,INC2: INC;
+
+begin
+  SHARED := 0;
+  cobegin
+    INC1;
+    INC2
+  coend;
+  writeln('Total admitted:  ',SHARED:1)
+end.

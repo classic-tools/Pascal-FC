@@ -1,0 +1,39 @@
+program gardens1;
+
+(* first attempt to solve the
+   ornamental gardens problem *)
+
+var 
+	count: integer;
+
+process turnstile1;
+
+var 
+	loop: integer;
+begin
+	for loop := 1 to 20 do
+		count := count + 1
+end;  (* turnstile1 *)
+
+
+process turnstile2;
+
+var
+	loop: integer;
+begin
+	for loop := 1 to 20 do
+		count := count + 1
+end;  (* turnstile2 *)
+
+
+
+
+begin
+	count := 0;
+	cobegin
+		turnstile1;
+		turnstile2
+	coend;
+	writeln('Total admitted: ',count)
+end.
+

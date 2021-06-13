@@ -1,0 +1,60 @@
+program semada;
+(*
+Simulation of binary semaphore with Ada rendezvous
+*)
+
+const
+  pmax = 2;
+var
+  shared, procloop: integer;
+
+
+process sem;
+  entry p;
+  entry v;
+var
+  i, value: integer;
+begin
+  value := 1;
+  repeat
+    select
+    when value <> 0 =>
+      accept p do
+        value := 0;
+    or
+      accept v do
+        value := 1;
+    or
+      terminate
+    end  (* select *)
+  forever
+end;  (* sem *)
+
+
+
+process type usertype;
+var
+  local: integer;
+begin
+  for local := 1 to 20 do
+    begin
+    sem.p;
+    shared := shared + 1;
+    sem.v
+    end
+end;  (* user *)
+
+
+
+var
+  user: array[1..pmax] of usertype;
+
+begin
+  shared := 0;
+  cobegin
+    sem;
+    for procloop := 1 to pmax do
+      user[procloop]
+  coend;
+  writeln(shared)
+end.

@@ -1,0 +1,49 @@
+
+program attempt1;
+
+var 
+	pnumber: integer;
+	shared: integer;
+
+process one;
+
+var
+	loop: integer;
+
+begin
+	for loop := 1 to 20 do
+		begin
+		while pnumber = 2 do
+			null;
+		shared := shared + 1;
+		pnumber := 2
+		end
+end;  (* one *)
+
+process two;
+
+var
+	loop: integer;
+
+begin
+	for loop := 1 to 20 do
+		begin
+		while pnumber = 1 do
+			null;
+		shared := shared + 1;
+		pnumber := 1
+		end
+end;  (* two *)
+
+
+begin
+	pnumber := 1;
+	shared := 0;
+	cobegin
+		one;
+		two
+	coend;
+	writeln(shared)
+end.
+
+

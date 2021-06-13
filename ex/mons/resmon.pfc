@@ -1,0 +1,69 @@
+program resmon;
+(* 
+Resource Control Problem
+Monitor Solution
+*)
+const
+  max = 10;
+  nclients = 10;
+  monitor control;
+  export
+    seize, release;
+  var
+    remaining: integer;
+    queue1, queue2: condition;
+    active1: boolean;
+
+    procedure seize(needed: integer);
+    begin
+      while (remaining-needed) < 0 do
+        if active1 then
+          delay(queue1)
+        else
+          delay(queue2);
+      remaining := remaining - needed;
+      writeln('Taken ',needed:1,' left ',remaining:1)
+    end;  (* seize *)
+
+    procedure release(n: integer);
+    begin
+      remaining := remaining + n;
+      writeln('Releasing ',n:1,' left ',remaining:1);
+      if active1 then
+        begin
+        active1 := false;
+        while not empty(queue1) do
+          resume(queue1)
+        end
+      else
+        begin
+        active1 := true;
+        while not empty(queue2) do
+          resume(queue2)
+        end
+    end;  (* release *)
+  begin
+    remaining := max;
+    active1 := true
+  end;  (* control *)
+
+  process type ClientType;
+  var
+    n: integer;
+  begin
+    repeat
+      n := random(max-1) + 1;
+      control.seize(n);
+      sleep(random(10));
+      control.release(n)
+    forever
+  end;  (* ClientType *)
+var
+  clients: array[1..nclients] of ClientType;
+  i: integer;
+begin
+  cobegin
+    for i := 1 to nclients do
+      clients[i]
+  coend
+end.

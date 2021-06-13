@@ -1,0 +1,37 @@
+program gardens0;
+
+(* non-concurrent approach *)
+
+var 
+	count: integer;
+
+procedure turnstile1;
+
+var 
+	loop: integer;
+begin
+	for loop := 1 to 20 do
+		count := count + 1
+end;  (* turnstile1 *)
+
+
+
+procedure turnstile2;
+
+var
+	loop: integer;
+begin
+	for loop := 1 to 20 do
+		count := count + 1
+end;  (* turnstile2 *)
+
+
+
+
+begin
+	count := 0;
+	turnstile1;
+	turnstile2;
+	writeln('Total admitted: ',count)
+end.
+
